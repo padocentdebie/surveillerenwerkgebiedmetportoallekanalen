@@ -1434,13 +1434,26 @@ Toont netjes zijn ID-bewijs zodra de agent professioneel blijft.`
        RESET KNOP VOOR DE DOCENT (PER KLAS)
        ========================================================================= */
     async function resetClassData() {
-      const confirmReset = confirm(`Weet je zeker dat je ALLE data voor klas ${currentClass} wilt wissen?\n\nDit verwijdert alle ingeleverde mutaties, gekozen locaties, koppel-casussen en portoberichten voor deze klas.`);
+      const confirmReset = confirm(
+        `Weet je zeker dat je ALLE data voor klas ${currentClass} én ALLE portogesprekken wilt wissen?\n\n` +
+        `Dit verwijdert:\n` +
+        `• Alle ingeleverde mutaties, gekozen locaties en koppel-casussen voor klas ${currentClass}\n` +
+        `• Alle portogesprekken uit de database (alle kanalen + OC)`
+      );
       if (!confirmReset) return;
 
       try {
         await db.ref(`classes/${currentClass}`).remove();
-        await db.ref(`porto/${currentClass}`).remove();
-        alert(`Klas ${currentClass} is volledig gereset naar Ronde 1.`);
+        await db.ref('porto').remove();
+
+        rxQueue = [];
+        loggedVoiceKeys.clear();
+        autoplayedVoiceKeys.clear();
+        chatHistory = [];
+        const chatContainer = document.getElementById('chat-messages');
+        if (chatContainer) chatContainer.innerHTML = '';
+
+        alert(`Klas ${currentClass} en alle portogesprekken zijn volledig gereset naar Ronde 1.`);
         currentRound = 1;
         lastRoleSwapCounter = 0;
         await syncCoupleData();
